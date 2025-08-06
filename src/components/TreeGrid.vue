@@ -7,6 +7,7 @@ import { TreeStore } from '@/store/TreeStore'
 import { items } from '@/constants/items'
 import 'ag-grid-enterprise'
 import { themeQuartz } from 'ag-grid-community'
+import { ArrowUturnRightIcon, ArrowUturnLeftIcon } from '@heroicons/vue/16/solid'
 // import './style.css'
 
 const myTheme = themeQuartz.withParams({
@@ -17,6 +18,10 @@ const myTheme = themeQuartz.withParams({
 ModuleRegistry.registerModules([AllCommunityModule, RowGroupingModule, TreeDataModule])
 
 const treeStore = new TreeStore(items)
+const mode = ref<'view' | 'edit'>('view')
+const toggleMode = () => {
+  mode.value = mode.value === 'view' ? 'edit' : 'view'
+}
 
 const renderBoldIfParent = (
   params: any,
@@ -91,12 +96,34 @@ const gridOptions = computed(() => ({
 
 <template>
   <div class="tree-grid-wrapper">
-    <div class="tree-grid-header">Режим: просмотр</div>
+    <div class="tree-grid-header flex-row-centered">
+      <div>
+        Режим:
+        <span @click="toggleMode" class="cursor-pointer">
+          {{ mode === 'view' ? 'просмотр' : 'редактирование' }}
+        </span>
+      </div>
+      <div class="flex-row-centered gap-5">
+        <ArrowUturnLeftIcon class="icon" />
+        <ArrowUturnRightIcon class="icon" />
+      </div>
+    </div>
     <ag-grid-vue :gridOptions="gridOptions" class="ag-theme-quartz tree-grid-content" />
   </div>
 </template>
 
 <style scoped lang="scss">
+.icon {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  // color: #222;
+  // margin-left: 12px;
+}
+
+.gap-5 {
+  gap: 5px;
+}
 .tree-grid-wrapper {
   display: flex;
   flex-direction: column;
@@ -105,9 +132,21 @@ const gridOptions = computed(() => ({
   padding: 10px;
   gap: 10px;
 }
+
+.flex-row-centered {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
 .tree-grid-header {
+  gap: 10px;
   color: #4788e3;
   padding: 10px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .tree-grid-content {
