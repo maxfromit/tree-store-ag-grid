@@ -3,8 +3,9 @@ import TreeGrid from './components/TreeGrid.vue'
 </script>
 
 <template>
-  <h1>You did it!</h1>
-  <TreeGrid />
+  <div>
+    <TreeGrid />
+  </div>
 </template>
 
 <style scoped></style>
