@@ -103,7 +103,7 @@ const gridOptions = computed(() => ({
           {{ mode === 'view' ? 'просмотр' : 'редактирование' }}
         </span>
       </div>
-      <div class="flex-row-centered gap-5">
+      <div v-if="mode === 'edit'" class="flex-row-centered gap-5">
         <ArrowUturnLeftIcon class="icon" />
         <ArrowUturnRightIcon class="icon" />
       </div>
