@@ -2,15 +2,6 @@
 import { ref } from 'vue'
 import l from 'lodash'
 
-// const props = defineProps<{
-//   params: ICellRendererParams & {
-//     action: {
-//       add: HandleAdd
-//       delete: HandleDelete
-//     }
-//   }
-// }>()
-
 const emit = defineEmits<{
   (e: 'add-name', value: string): void
   (e: 'cancel'): void
