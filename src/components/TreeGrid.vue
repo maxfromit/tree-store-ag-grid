@@ -19,7 +19,7 @@ import 'ag-grid-enterprise'
 import { themeQuartz } from 'ag-grid-community'
 import { ArrowUturnRightIcon, ArrowUturnLeftIcon } from '@heroicons/vue/16/solid'
 import TreeGroupCell from './components/TreeGroupCell.vue'
-import { isGroupByParams, getCategoryLabel } from './utils'
+import { getCategoryLabel } from './utils'
 import type { ItemId, Item } from '@/store/TreeStore'
 import { useRefHistory } from '@vueuse/core'
 import NewItemLabelDialog from './components/NewItemLabelDialog.vue'
@@ -45,21 +45,15 @@ const toggleMode = () => {
   mode.value = mode.value === 'view' ? 'edit' : 'view'
 }
 
+const isParent = (id: ItemId) => !l.isEmpty(treeStore.value.getChildren(id))
+
 const applyBoldForGroup = (params: CellClassParams) => {
-  if (l.toNumber(params.data.id) === 6) {
-    console.log('applyBoldForGroup called with params:', params.node?.group, params?.rowIndex)
-    const isGroup = params.node?.group === true
-    console.log('applyBoldForGroup called with params:', isGroup, params.node)
-  }
-  // const isGroup = isGroupByParams(params)
-  return isGroupByParams(params) ? 'font-bold' : ''
+  return isParent(params.data.id) ? 'font-bold' : ''
 }
 const gridApi = shallowRef<GridApi<Item[]> | null>(null)
 
 const onGridReady = (params: GridReadyEvent) => {
   gridApi.value = params.api
-  console.log('Grid is ready:', params.api)
-  console.log('Grid is ready:')
 }
 
 const columnDefs = ref<ColDef[]>([
@@ -91,18 +85,25 @@ const columnDefs = ref<ColDef[]>([
 
 const isDialogShown = ref(false)
 
-const addItem = (label: string) => {
+const addItem = async (label: string) => {
   const newItem = {
     id: nextNumericId.value,
     label,
     parent: newItemParent.value,
   }
   treeStore.value.addItem(newItem)
+  const node = gridApi?.value?.getRowNode(l.toString(newItem.parent))
+  dismissDialog()
+
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  if (node) {
+    gridApi?.value?.setRowNodeExpanded(node, true, true)
+  }
+
   // const transaction = gridApi?.value?.applyTransaction({
   //   add: [[newItem]],
   // })
   // console.log('Transaction result:', transaction)
-  dismissDialog()
 }
 
 const newItemParent = ref<ItemId | null>(null)
@@ -120,6 +121,7 @@ const dismissDialog = () => {
 
 export type ShowNewItemLabelDialog = typeof showNewItemLabelDialog
 export type DeleteItem = typeof deleteItem
+export type IsParent = typeof isParent
 
 const getAutoGroupColumnDef = () => {
   return {
@@ -130,21 +132,12 @@ const getAutoGroupColumnDef = () => {
       ...(mode.value === 'edit'
         ? { innerRenderer: TreeGroupCell }
         : {
-            innerRenderer: getCategoryLabel,
+            innerRenderer: (params: ICellRendererParams) =>
+              getCategoryLabel(isParent(params.data.id)),
           }),
 
-      // ...(mode.value === 'edit'
-      //   ? { innerRenderer: TreeGroupCell }
-      //   : {
-      //       innerRenderer: (p) =>
-      //         renderBoldIfParent({
-      //           params: p,
-      //           customRegular: 'Элемент',
-      //           customBold: 'Группа',
-      //         }),
-      //     }),
-
       innerRendererParams: {
+        isParent: isParent,
         action: {
           showDialog: showNewItemLabelDialog,
           delete: deleteItem,
