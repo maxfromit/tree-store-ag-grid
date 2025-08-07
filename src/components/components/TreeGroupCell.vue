@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { getCategoryLabel } from '../utils'
 import { PlusCircleIcon, XCircleIcon } from '@heroicons/vue/16/solid'
 import type { ICellRendererParams } from 'ag-grid-community'
@@ -20,13 +20,11 @@ const label = computed(() => {
   return getCategoryLabel(props.params.isParent(props.params.data?.id))
 })
 
-function onAdd() {
+function showDialogInParent() {
   props.params.action.showDialog(props.params.data?.id)
-  // showDialog.value = true
-  // newItemLabel.value = ''
 }
 
-function onDelete() {
+function deleteItemInParent() {
   props.params.action.delete(props.params.data?.id)
 }
 </script>
@@ -36,11 +34,11 @@ function onDelete() {
     <div>{{ label }}</div>
 
     <div class="flex flex-row items-center gap-1">
-      <button @click.stop="onAdd" type="button">
+      <button @click.stop="showDialogInParent" type="button">
         <PlusCircleIcon class="text-green-500 w-4 h-4 hover:text-green-600 focus:text-green-700" />
       </button>
 
-      <button @click.stop="onDelete" type="button">
+      <button @click.stop="deleteItemInParent" type="button">
         <XCircleIcon class="text-red-500 w-4 h-4 hover:text-red-600 focus:text-red-700" />
       </button>
     </div>
