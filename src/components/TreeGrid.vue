@@ -61,7 +61,7 @@ const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addIte
 
 const deleteItem = (id: ItemId) => treeStore.value.removeItem(id)
 
-const gridOptions = computed(() => ({
+const gridOptions = ref({
   columnDefs: () => [
     {
       field: 'parent',
@@ -130,7 +130,7 @@ const gridOptions = computed(() => ({
   },
   rowNumbers: true,
   theme: myTheme,
-}))
+})
 
 function useAddWithDialog() {
   const isDialogShown = ref(false)
