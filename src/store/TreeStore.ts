@@ -1,10 +1,12 @@
-interface Item {
+export type Item = {
   id: number | string
   parent: number | string | null
-  [key: string]: unknown
+  label: string
+  // [key: string]: unknown
 }
 
-type ItemId = Item['id']
+export type ItemId = Item['id']
+
 type ItemIdSet = Set<ItemId>
 type ChildrenMap = Map<ItemId, ItemIdSet>
 type itemMap = Map<ItemId, Item>
