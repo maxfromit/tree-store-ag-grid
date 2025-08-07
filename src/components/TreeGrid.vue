@@ -42,19 +42,14 @@ const treeStore = ref(new TreeStore(items))
 const itemsRef = computed(() => treeStore.value.getAll())
 const { undo, redo } = useRefHistory(treeStore, { clone: l.cloneDeep, deep: true })
 
-const isParent = (id: ItemId) => {
-  return !l.isEmpty(treeStore.value.getChildren(id))
-}
+const isParent = (id: ItemId) => !l.isEmpty(treeStore.value.getChildren(id))
 
 const mode = ref<'view' | 'edit'>('view')
 const toggleMode = () => {
   mode.value = mode.value === 'view' ? 'edit' : 'view'
 }
 
-const applyBoldForGroup = (params: CellClassParams) => {
-  console.log('applyBoldForGroup', params.data.id, isParent(params.data.id))
-  return isParent(params.data.id) ? 'font-bold' : ''
-}
+const applyBoldForGroup = (params: CellClassParams) => (isParent(params.data.id) ? 'font-bold' : '')
 
 const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addItem } =
   useAddWithDialog()
@@ -92,8 +87,6 @@ const gridOptions = ref({
   ],
 
   defaultColDef: {
-    // valueFormatter,
-    // cellRenderer: renderBoldIfParent,
     resizable: false,
     flex: 1,
     sortable: false,
@@ -101,10 +94,7 @@ const gridOptions = ref({
 
   treeData: true,
   treeDataParentIdField: 'parent',
-  getRowId: (params: GetRowIdParams<Item, any>) => {
-    return l.toString(params.data.id)
-  },
-
+  getRowId: (params: GetRowIdParams<Item, any>) => l.toString(params.data.id),
   autoGroupColumnDef: () => {
     return {
       cellClass: applyBoldForGroup,
