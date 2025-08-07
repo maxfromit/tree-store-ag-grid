@@ -97,6 +97,7 @@ const gridOptions = ref({
   getRowId: (params: GetRowIdParams<Item, any>) => l.toString(params.data.id),
   autoGroupColumnDef: () => {
     return {
+      headerName: 'Категория',
       cellClass: applyBoldForGroup,
       cellRendererParams: {
         suppressCount: true,
