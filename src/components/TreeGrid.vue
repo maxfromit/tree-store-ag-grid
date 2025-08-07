@@ -41,14 +41,20 @@ const onGridReady = (params: GridReadyEvent) => {
 const treeStore = ref(new TreeStore(items))
 const itemsRef = computed(() => treeStore.value.getAll())
 const { undo, redo } = useRefHistory(treeStore, { clone: l.cloneDeep, deep: true })
-const isParent = (id: ItemId) => !l.isEmpty(treeStore.value.getChildren(id))
+
+const isParent = (id: ItemId) => {
+  return !l.isEmpty(treeStore.value.getChildren(id))
+}
 
 const mode = ref<'view' | 'edit'>('view')
 const toggleMode = () => {
   mode.value = mode.value === 'view' ? 'edit' : 'view'
 }
 
-const applyBoldForGroup = (params: CellClassParams) => (isParent(params.data.id) ? 'font-bold' : '')
+const applyBoldForGroup = (params: CellClassParams) => {
+  console.log('applyBoldForGroup', params.data.id, isParent(params.data.id))
+  return isParent(params.data.id) ? 'font-bold' : ''
+}
 
 const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addItem } =
   useAddWithDialog()
@@ -56,8 +62,7 @@ const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addIte
 const deleteItem = (id: ItemId) => treeStore.value.removeItem(id)
 
 const gridOptions = computed(() => ({
-  theme: myTheme,
-  columnDefs: [
+  columnDefs: () => [
     {
       field: 'parent',
       headerName: 'Категория',
@@ -100,28 +105,31 @@ const gridOptions = computed(() => ({
     return l.toString(params.data.id)
   },
 
-  autoGroupColumnDef: {
-    cellClass: applyBoldForGroup,
-    cellRendererParams: {
-      suppressCount: true,
+  autoGroupColumnDef: () => {
+    return {
+      cellClass: applyBoldForGroup,
+      cellRendererParams: {
+        suppressCount: true,
 
-      ...(mode.value === 'edit'
-        ? { innerRenderer: TreeGroupCell }
-        : {
-            innerRenderer: (params: ICellRendererParams) =>
-              getCategoryLabel(isParent(params.data.id)),
-          }),
+        ...(mode.value === 'edit'
+          ? { innerRenderer: TreeGroupCell }
+          : {
+              innerRenderer: (params: ICellRendererParams) =>
+                getCategoryLabel(isParent(params.data.id)),
+            }),
 
-      innerRendererParams: {
-        isParent: isParent,
-        action: {
-          showDialog: getParentAndShowNewItemLabelDialog,
-          delete: deleteItem,
+        innerRendererParams: {
+          isParent: isParent,
+          action: {
+            showDialog: getParentAndShowNewItemLabelDialog,
+            delete: deleteItem,
+          },
         },
       },
-    },
+    }
   },
   rowNumbers: true,
+  theme: myTheme,
 }))
 
 function useAddWithDialog() {
@@ -202,12 +210,12 @@ export type IsParent = typeof isParent
       :rowData="itemsRef"
       @grid-ready="onGridReady"
       :theme="gridOptions.theme"
-      :columnDefs="gridOptions.columnDefs"
+      :columnDefs="gridOptions.columnDefs()"
       :defaultColDef="gridOptions.defaultColDef"
       :treeData="gridOptions.treeData"
       :treeDataParentIdField="gridOptions.treeDataParentIdField"
       :getRowId="gridOptions.getRowId"
-      :autoGroupColumnDef="gridOptions.autoGroupColumnDef"
+      :autoGroupColumnDef="gridOptions.autoGroupColumnDef()"
       :rowNumbers="gridOptions.rowNumbers"
       class="ag-theme-quartz flex-1 min-h-0 flex flex-col"
     />
