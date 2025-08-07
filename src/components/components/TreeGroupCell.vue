@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { getCategoryLabel } from '../utils'
 import { PlusCircleIcon, XCircleIcon } from '@heroicons/vue/16/solid'
 import type { ICellRendererParams } from 'ag-grid-community'
@@ -42,9 +42,6 @@ const label = computed(() => {
   return getCategoryLabel(props.params)
 })
 
-const showDialog = ref(false)
-const newItemLabel = ref('')
-
 function onAdd() {
   props.params.action.showDialog(props.params.data?.id)
   // showDialog.value = true
@@ -55,16 +52,6 @@ function onDelete() {
   console.log('onDelete called with id:', props.params.data?.id)
   props.params.action.delete(props.params.data?.id)
 }
-// function handleDialogOk() {
-//   console.log('New item name:', newItemLabel.value)
-//   const itemToAdd = { parent: props.params.data?.id, label: newItemLabel.value }
-//   props.params.action.add(itemToAdd)
-
-//   showDialog.value = false
-// }
-// function handleDialogCancel() {
-//   showDialog.value = false
-// }
 </script>
 
 <template>
@@ -80,27 +67,5 @@ function onDelete() {
         <XCircleIcon class="text-red-500 w-4 h-4 hover:text-red-600 focus:text-red-700" />
       </button>
     </div>
-
-    <!-- <div v-if="showDialog" class="fixed top-10 flex justify-center items-center z-[10000]">
-      <div class="bg-white p-2 rounded-lg shadow-lg flex flex-col gap-2 min-w-20">
-        <div>Введите имя нового элемента:</div>
-        <input v-model="newItemLabel" type="text" autofocus class="border rounded px-2 py-1" />
-        <div class="flex flex-row gap-2 justify-end mt-2">
-          <button
-            @click="handleDialogOk"
-            :disabled="!newItemLabel.trim()"
-            class="px-3 rounded bg-gray-100 hover:bg-gray-200 focus:bg-gray-200"
-          >
-            OK
-          </button>
-          <button
-            @click="handleDialogCancel"
-            class="px-2 rounded bg-gray-100 hover:bg-gray-200 focus:bg-gray-300"
-          >
-            Отмена
-          </button>
-        </div>
-      </div>
-    </div> -->
   </div>
 </template>
