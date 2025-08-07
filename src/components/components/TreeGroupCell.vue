@@ -3,11 +3,12 @@ import { computed, watch } from 'vue'
 import { getCategoryLabel } from '../utils'
 import { PlusCircleIcon, XCircleIcon } from '@heroicons/vue/16/solid'
 import type { ICellRendererParams } from 'ag-grid-community'
-import type { ShowNewItemLabelDialog, DeleteItem } from '../TreeGrid.vue'
+import type { ShowNewItemLabelDialog, DeleteItem, IsParent } from '../TreeGrid.vue'
 // import Dialog from './Dialog.vue'
 
 const props = defineProps<{
   params: ICellRendererParams & {
+    isParent: IsParent
     action: {
       showDialog: ShowNewItemLabelDialog
       delete: DeleteItem
@@ -15,31 +16,8 @@ const props = defineProps<{
   }
 }>()
 
-watch(
-  () => props.params?.node,
-  () => {
-    console.log('node changed:', props.params?.node)
-  },
-)
-
 const label = computed(() => {
-  // console.log('\ngetCategoryLabel calls data', props?.params?.data.id)
-  // console.log('getCategoryLabel calls data', props?.params?.data)
-  // console.log('getCategoryLabel calls value', props?.params?.value)
-  // console.log('getCategoryLabel calls node', props?.params?.node)
-
-  // console.log('getCategoryLabel calls  props?.params?.node.group', props?.params?.node?.group)
-  // console.log(
-  //   'getCategoryLabel calls  props?.params?.node.allChildrenCount',
-  //   props?.params?.node?.allChildrenCount,
-  // )
-
-  // console.log(
-  //   'getCategoryLabel calls props?.params?.node && props?.params?.node.group',
-  //   props?.params?.node && props?.params?.node?.group,
-  // )
-
-  return getCategoryLabel(props.params)
+  return getCategoryLabel(props.params.isParent(props.params.data?.id))
 })
 
 function onAdd() {
@@ -49,7 +27,6 @@ function onAdd() {
 }
 
 function onDelete() {
-  console.log('onDelete called with id:', props.params.data?.id)
   props.params.action.delete(props.params.data?.id)
 }
 </script>
