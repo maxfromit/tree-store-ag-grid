@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, shallowRef } from 'vue'
+import l from 'lodash'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import type {
@@ -8,6 +9,8 @@ import type {
   CellClassParams,
   NewValueParams,
   GetRowIdParams,
+  GridReadyEvent,
+  GridApi,
 } from 'ag-grid-community'
 import { RowGroupingModule, TreeDataModule } from 'ag-grid-enterprise'
 import { TreeStore } from '@/store/TreeStore'
@@ -17,9 +20,9 @@ import { themeQuartz } from 'ag-grid-community'
 import { ArrowUturnRightIcon, ArrowUturnLeftIcon } from '@heroicons/vue/16/solid'
 import TreeGroupCell from './components/TreeGroupCell.vue'
 import { isGroupByParams, getCategoryLabel } from './utils'
-import type { ItemId, Item as ItemBase, Item } from '@/store/TreeStore'
-import l from 'lodash'
+import type { ItemId, Item } from '@/store/TreeStore'
 import { useRefHistory } from '@vueuse/core'
+import NewItemLabelDialog from './components/NewItemLabelDialog.vue'
 
 const myTheme = themeQuartz.withParams({
   headerColumnBorder: true,
@@ -34,7 +37,7 @@ const treeStore = ref(new TreeStore(items))
 const itemsRef = computed(() => treeStore.value.getAll())
 const { undo, redo } = useRefHistory(treeStore, { clone: l.cloneDeep, deep: true })
 
-const agGrid = ref(null)
+const agGrid = ref()
 
 const mode = ref<'view' | 'edit'>('view')
 
@@ -43,9 +46,20 @@ const toggleMode = () => {
 }
 
 const applyBoldForGroup = (params: CellClassParams) => {
-  console.log('applyBoldForGroup called with params:', params?.node?.group)
+  if (l.toNumber(params.data.id) === 6) {
+    console.log('applyBoldForGroup called with params:', params.node?.group, params?.rowIndex)
+    const isGroup = params.node?.group === true
+    console.log('applyBoldForGroup called with params:', isGroup, params.node)
+  }
   // const isGroup = isGroupByParams(params)
   return isGroupByParams(params) ? 'font-bold' : ''
+}
+const gridApi = shallowRef<GridApi<Item[]> | null>(null)
+
+const onGridReady = (params: GridReadyEvent) => {
+  gridApi.value = params.api
+  console.log('Grid is ready:', params.api)
+  console.log('Grid is ready:')
 }
 
 const columnDefs = ref<ColDef[]>([
@@ -75,25 +89,37 @@ const columnDefs = ref<ColDef[]>([
   },
 ])
 
-// function refreshGrid() {
-//   if (agGrid.value && agGrid.value.api) {
-//     agGrid.value.api.refreshClientSideRowModel('group')
-//     // or, for a full refresh:
-//     agGrid.value.api.setRowData(history.value)
-//   }
-// }
+const isDialogShown = ref(false)
 
-const handleAdd = (item: Omit<ItemBase, 'id'>) => {
-  console.log('handleAdd called with item:', item)
-  treeStore.value.addItem({
+const addItem = (label: string) => {
+  const newItem = {
     id: nextNumericId.value,
-    ...item,
-  })
+    label,
+    parent: newItemParent.value,
+  }
+  treeStore.value.addItem(newItem)
+  // const transaction = gridApi?.value?.applyTransaction({
+  //   add: [[newItem]],
+  // })
+  // console.log('Transaction result:', transaction)
+  dismissDialog()
+}
+
+const newItemParent = ref<ItemId | null>(null)
+const showNewItemLabelDialog = (parent: ItemId) => {
+  isDialogShown.value = true
+  newItemParent.value = parent
+  // emit('show-dialog', parent)
+
   // refreshGrid()
 }
 
-export type HandleAdd = typeof handleAdd
-export type HandleDelete = typeof handleDelete
+const dismissDialog = () => {
+  isDialogShown.value = false
+}
+
+export type ShowNewItemLabelDialog = typeof showNewItemLabelDialog
+export type DeleteItem = typeof deleteItem
 
 const getAutoGroupColumnDef = () => {
   return {
@@ -120,15 +146,15 @@ const getAutoGroupColumnDef = () => {
 
       innerRendererParams: {
         action: {
-          add: handleAdd,
-          delete: handleDelete,
+          showDialog: showNewItemLabelDialog,
+          delete: deleteItem,
         },
       },
     },
   }
 }
 
-const handleDelete = (id: ItemId) => {
+const deleteItem = (id: ItemId) => {
   console.log('handleDelete called with id:', id)
   treeStore.value.removeItem(id)
   // refreshItems()
@@ -230,6 +256,7 @@ const nextNumericId = computed(() => {
     <ag-grid-vue
       ref="agGrid"
       :rowData="itemsRef"
+      @grid-ready="onGridReady"
       :theme="gridOptions.theme"
       :columnDefs="gridOptions.columnDefs"
       :defaultColDef="gridOptions.defaultColDef"
@@ -240,4 +267,6 @@ const nextNumericId = computed(() => {
       class="ag-theme-quartz flex-1 min-h-0 flex flex-col"
     />
   </div>
+
+  <NewItemLabelDialog v-if="isDialogShown" @cancel="dismissDialog" @add-name="addItem" />
 </template>
