@@ -4,7 +4,6 @@ import { getCategoryLabel } from '../utils'
 import { PlusCircleIcon, XCircleIcon } from '@heroicons/vue/16/solid'
 import type { ICellRendererParams } from 'ag-grid-community'
 import type { ShowNewItemLabelDialog, DeleteItem, IsParent } from '../TreeGrid.vue'
-// import Dialog from './Dialog.vue'
 
 const props = defineProps<{
   params: ICellRendererParams & {
