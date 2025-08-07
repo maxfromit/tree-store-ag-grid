@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, shallowRef } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import l from 'lodash'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
@@ -11,8 +11,9 @@ import type {
   GetRowIdParams,
   GridReadyEvent,
   GridApi,
+  ValueFormatterParams,
 } from 'ag-grid-community'
-import { RowGroupingModule, TreeDataModule } from 'ag-grid-enterprise'
+import { RowGroupingModule, TreeDataModule, RowNumbersModule } from 'ag-grid-enterprise'
 import { TreeStore } from '@/store/TreeStore'
 import { items } from '@/constants/items'
 import 'ag-grid-enterprise'
@@ -24,47 +25,40 @@ import type { ItemId, Item } from '@/store/TreeStore'
 import { useRefHistory } from '@vueuse/core'
 import NewItemLabelDialog from './components/NewItemLabelDialog.vue'
 
+ModuleRegistry.registerModules([
+  AllCommunityModule,
+  RowGroupingModule,
+  TreeDataModule,
+  RowNumbersModule,
+])
 const myTheme = themeQuartz.withParams({
   headerColumnBorder: true,
   pinnedColumnBorder: false,
 })
-
-ModuleRegistry.registerModules([AllCommunityModule, RowGroupingModule, TreeDataModule])
-
-const treeStoreInitial = new TreeStore(items)
-const treeStore = ref(new TreeStore(items))
-
-const itemsRef = computed(() => treeStore.value.getAll())
-const { undo, redo } = useRefHistory(treeStore, { clone: l.cloneDeep, deep: true })
-
-const agGrid = ref()
-
-const mode = ref<'view' | 'edit'>('view')
-
-const toggleMode = () => {
-  mode.value = mode.value === 'view' ? 'edit' : 'view'
-}
-
-const isParent = (id: ItemId) => !l.isEmpty(treeStore.value.getChildren(id))
-
-const applyBoldForGroup = (params: CellClassParams) => {
-  return isParent(params.data.id) ? 'font-bold' : ''
-}
 const gridApi = shallowRef<GridApi<Item[]> | null>(null)
-
 const onGridReady = (params: GridReadyEvent) => {
   gridApi.value = params.api
 }
 
+const treeStore = ref(new TreeStore(items))
+const itemsRef = computed(() => treeStore.value.getAll())
+const { undo, redo } = useRefHistory(treeStore, { clone: l.cloneDeep, deep: true })
+const isParent = (id: ItemId) => !l.isEmpty(treeStore.value.getChildren(id))
+
+const mode = ref<'view' | 'edit'>('view')
+const toggleMode = () => {
+  mode.value = mode.value === 'view' ? 'edit' : 'view'
+}
+
+const applyBoldForGroup = (params: CellClassParams) => {
+  return isParent(params.data.id) ? 'font-bold' : ''
+}
+
+const valueFormatter = (params: ValueFormatterParams) => {
+  return params.value
+}
+
 const columnDefs = ref<ColDef[]>([
-  {
-    headerName: '№ п\\п',
-    valueGetter: 'node.sourceRowIndex + 1',
-    flex: 0,
-    width: 100,
-    pinned: 'left',
-    cellClass: 'font-bold',
-  },
   {
     field: 'parent',
     headerName: 'Категория',
@@ -74,14 +68,21 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'label',
     headerName: 'Наименование',
-    editable: true,
+    editable: mode.value === 'edit' ? true : false,
 
     cellClass: (params: CellClassParams) => {
-      return applyBoldForGroup(params) + ' cursor-text hover:text-blue-500 focus:text-blue-600'
+      return (
+        applyBoldForGroup(params) +
+        (mode.value === 'edit' ? ' cursor-text hover:text-blue-500 focus:text-blue-600' : '')
+      )
     },
     onCellValueChanged: handleCellValueChanged,
   },
 ])
+
+const rowNumbersFormatter = (params: ValueFormatterParams) => {
+  return params?.value
+}
 
 const isDialogShown = ref(false)
 
@@ -99,11 +100,6 @@ const addItem = async (label: string) => {
   if (node) {
     gridApi?.value?.setRowNodeExpanded(node, true, true)
   }
-
-  // const transaction = gridApi?.value?.applyTransaction({
-  //   add: [[newItem]],
-  // })
-  // console.log('Transaction result:', transaction)
 }
 
 const newItemParent = ref<ItemId | null>(null)
@@ -172,6 +168,7 @@ const gridOptions = computed(() => ({
   theme: myTheme,
   columnDefs: columnDefs.value,
   defaultColDef: {
+    valueFormatter,
     // cellRenderer: renderBoldIfParent,
     resizable: false,
     flex: 1,
@@ -181,36 +178,6 @@ const gridOptions = computed(() => ({
   treeDataParentIdField: 'parent',
   getRowId: (params: GetRowIdParams<Item, any>) => l.toString(params.data.id),
   autoGroupColumnDef: getAutoGroupColumnDef(),
-  // autoGroupColumnDef: {
-  //   // headerName: 'Категория',
-  //   // field: 'parent',
-  //   // cellRenderer: TreeGroupCell,
-  //   cellRendererParams: {
-  //     suppressCount: true,
-  //     // innerRendererFramework: TreeGroupCell,
-
-  //     ...(mode.value === 'edit'
-  //       ? { innerRenderer: TreeGroupCell }
-  //       : {
-  //           innerRenderer: (p) =>
-  //             renderBoldIfParent({
-  //               params: p,
-  //               customRegular: 'Элемент',
-  //               customBold: 'Группа',
-  //             }),
-  //         }),
-
-  //     // innerRenderer: (p) => renderBoldIfParent(p, 'Элемент', 'Группа'),
-  //     // innerRenderer: mode.value === 'edit' ? TreeGroupCell : undefined,
-
-  //     innerRendererParams: {
-  //       action: {
-  //         add: handleAdd,
-  //         delete: handleDelete,
-  //       },
-  //     },
-  //   },
-  // },
 }))
 
 const nextNumericId = computed(() => {
@@ -225,7 +192,6 @@ const nextNumericId = computed(() => {
 
 <template>
   <div class="flex flex-col h-screen bg-gray-200 p-2 gap-2">
-    itemsRef {{ itemsRef }}
     <div class="flex flex-row items-center gap-2 text-blue-500 p-2">
       <div>
         Режим:
@@ -247,7 +213,6 @@ const nextNumericId = computed(() => {
     </div>
 
     <ag-grid-vue
-      ref="agGrid"
       :rowData="itemsRef"
       @grid-ready="onGridReady"
       :theme="gridOptions.theme"
@@ -257,6 +222,7 @@ const nextNumericId = computed(() => {
       :treeDataParentIdField="gridOptions.treeDataParentIdField"
       :getRowId="getRowId"
       :autoGroupColumnDef="getAutoGroupColumnDef()"
+      :rowNumbers="{ headerName: '№ п\\п', valueFormatter: rowNumbersFormatter }"
       class="ag-theme-quartz flex-1 min-h-0 flex flex-col"
     />
   </div>
