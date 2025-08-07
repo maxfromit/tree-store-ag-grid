@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, shallowRef, type Ref } from 'vue'
 import l from 'lodash'
+import { useRefHistory } from '@vueuse/core'
 import { AgGridVue } from 'ag-grid-vue3'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import type {
@@ -11,17 +12,19 @@ import type {
   GridReadyEvent,
   GridApi,
 } from 'ag-grid-community'
-import { RowGroupingModule, TreeDataModule, RowNumbersModule } from 'ag-grid-enterprise'
-import { TreeStore } from '@/store/TreeStore'
-import { items } from '@/constants/items'
 import 'ag-grid-enterprise'
 import { themeQuartz } from 'ag-grid-community'
+import { RowGroupingModule, TreeDataModule, RowNumbersModule } from 'ag-grid-enterprise'
 import { ArrowUturnRightIcon, ArrowUturnLeftIcon } from '@heroicons/vue/16/solid'
-import TreeGroupCell from './components/TreeGroupCell.vue'
+
+import { TreeStore } from '@/store/TreeStore'
+import { items } from '@/constants/items'
 import { getCategoryLabel } from './utils'
-import type { ItemId, Item } from '@/store/TreeStore'
-import { useRefHistory } from '@vueuse/core'
+
+import TreeGroupCell from './components/TreeGroupCell.vue'
+
 import NewItemLabelDialog from './components/NewItemLabelDialog.vue'
+import type { ItemId, Item } from '@/store/TreeStore'
 
 ModuleRegistry.registerModules([
   AllCommunityModule,
