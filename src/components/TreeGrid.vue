@@ -140,7 +140,7 @@ function useAddWithDialog() {
     isDialogShown.value = true
   }
 
-  const addItem = async (label: string) => {
+  const addItem = (label: string) => {
     const newItem = {
       id: nextNumericId.value,
       label,
@@ -150,10 +150,11 @@ function useAddWithDialog() {
     const node = gridApi?.value?.getRowNode(l.toString(newItem.parent))
     dismissDialog()
 
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    if (node) {
-      gridApi?.value?.setRowNodeExpanded(node, true, true)
-    }
+    setTimeout(() => {
+      if (node) {
+        gridApi?.value?.setRowNodeExpanded(node, true, true)
+      }
+    }, 300)
   }
 
   const nextNumericId = computed(() => {
