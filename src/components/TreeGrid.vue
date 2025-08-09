@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, shallowRef, type Ref } from 'vue'
+import { ref, computed, shallowRef } from 'vue'
 import l from 'lodash'
 import { useRefHistory } from '@vueuse/core'
 import { AgGridVue } from 'ag-grid-vue3'
@@ -58,6 +58,10 @@ const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addIte
   useAddWithDialog()
 
 const deleteItem = (id: ItemId) => treeStore.value.removeItem(id)
+
+export type ShowNewItemLabelDialog = typeof getParentAndShowNewItemLabelDialog
+export type DeleteItem = typeof deleteItem
+export type IsParent = typeof isParent
 
 const gridOptions = ref({
   columnDefs: () => [
@@ -173,10 +177,6 @@ function useAddWithDialog() {
     addItem,
   }
 }
-
-export type ShowNewItemLabelDialog = typeof getParentAndShowNewItemLabelDialog
-export type DeleteItem = typeof deleteItem
-export type IsParent = typeof isParent
 </script>
 
 <template>
@@ -192,10 +192,10 @@ export type IsParent = typeof isParent
         </span>
       </div>
       <div v-if="mode === 'edit'" class="flex flex-row items-center gap-1">
-        <button type="button" @click="undo">
+        <button type="button" @click="undo()">
           <ArrowUturnLeftIcon class="w-4 h-4 hover:text-blue-600 focus:text-blue-700" />
         </button>
-        <button type="button" @click="redo">
+        <button type="button" @click="redo()">
           <ArrowUturnRightIcon class="w-4 h-4 hover:text-blue-600 focus:text-blue-700" />
         </button>
       </div>
