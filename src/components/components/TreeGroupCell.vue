@@ -34,11 +34,11 @@ function deleteItemInParent() {
 
     <div class="flex flex-row items-center gap-1">
       <button @click.stop="showDialogInParent" type="button">
-        <PlusCircleIcon class="text-green-500 w-4 h-4 hover:text-green-600 focus:text-green-700" />
+        <PlusCircleIcon class="text-green-500 w-5 h-5 hover:text-green-600 focus:text-green-700" />
       </button>
 
       <button @click.stop="deleteItemInParent" type="button">
-        <XCircleIcon class="text-red-500 w-4 h-4 hover:text-red-600 focus:text-red-700" />
+        <XCircleIcon class="text-red-500 w-5 h-5 hover:text-red-600 focus:text-red-700" />
       </button>
     </div>
   </div>
