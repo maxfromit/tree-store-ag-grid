@@ -128,6 +128,9 @@ export class TreeStore {
     parentId: ItemId | null,
     oldParentId?: ItemId | null,
   ): void {
+    // Only check for cycles when updating an item's parent (not on add).
+    // A new item cannot create a cycle, but updating parent could.
+    // If moving from root (oldParentId === null) to a new parent, ensure new parent is not a descendant.
     if (oldParentId !== undefined && !isNil(parentId)) {
       const childrenOfChildId = this.collectChildrenRecursive(childId)
       if (childrenOfChildId.has(parentId)) {
