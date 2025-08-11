@@ -1,12 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { TreeStore } from '@/store/TreeStore'
+import { describe, test, expect, beforeEach } from 'vitest'
+import { TreeStore, type Item } from '@/store/TreeStore'
 import { items } from '@/constants/items'
-
-interface Item {
-  id: number | string
-  parent: number | string | null
-  [key: string]: unknown
-}
 
 describe('TreeStore', () => {
   let treeStore: TreeStore
@@ -16,30 +10,30 @@ describe('TreeStore', () => {
   })
 
   describe('constructor', () => {
-    it('should initialize TreeStore with items', () => {
+    test('should initialize TreeStore with items', () => {
       const store = new TreeStore(items)
       expect(store).toBeInstanceOf(TreeStore)
     })
 
-    it('should handle empty array', () => {
+    test('should handle empty array', () => {
       const store = new TreeStore([])
       expect(store.getAll()).toEqual([])
     })
   })
 
   describe('getAll', () => {
-    it('should return all items in original order', () => {
+    test('should return all items in original order', () => {
       const result = treeStore.getAll()
       expect(result).toEqual(items)
     })
 
-    it('should return a copy of items (not reference)', () => {
+    test('should return a copy of items (not reference)', () => {
       const result = treeStore.getAll()
       expect(result).not.toBe(items)
       expect(result[0]).not.toBe(items[0])
     })
 
-    it('should return new copies on each call', () => {
+    test('should return new copies on each call', () => {
       const first = treeStore.getAll()
       const second = treeStore.getAll()
       expect(first[0]).not.toBe(second[0])
@@ -47,22 +41,22 @@ describe('TreeStore', () => {
   })
 
   describe('getItem', () => {
-    it('should return item by id', () => {
+    test('should return item by id', () => {
       const result = treeStore.getItem(1)
       expect(result).toEqual({ id: 1, parent: null, label: 'Айтем 1' })
     })
 
-    it('should return item by string id', () => {
+    test('should return item by string id', () => {
       const result = treeStore.getItem('2')
       expect(result).toEqual({ id: '2', parent: 1, label: 'Айтем 2' })
     })
 
-    it('should return undefined for non-existent id', () => {
+    test('should return undefined for non-existent id', () => {
       const result = treeStore.getItem(999)
       expect(result).toBeUndefined()
     })
 
-    it('should return a copy of item (not reference)', () => {
+    test('should return a copy of item (not reference)', () => {
       const result = treeStore.getItem(1)
       const original = items.find((item) => item.id === 1)
       expect(result).not.toBe(original)
@@ -70,86 +64,86 @@ describe('TreeStore', () => {
   })
 
   describe('getChildren', () => {
-    it('should return direct children', () => {
+    test('should return direct children', () => {
       const result = treeStore.getChildren(1)
       expect(result).toHaveLength(2)
       expect(result.map((item) => item.id)).toEqual(expect.arrayContaining(['2', 3]))
     })
 
-    it('should return direct children for string id', () => {
+    test('should return direct children for string id', () => {
       const result = treeStore.getChildren('2')
       expect(result).toHaveLength(3)
       expect(result.map((item) => item.id)).toEqual(expect.arrayContaining([4, 5, 6]))
     })
 
-    it('should return new copies on each call', () => {
+    test('should return new copies on each call', () => {
       const first = treeStore.getChildren(1)
       const second = treeStore.getChildren(1)
       expect(first[0]).not.toBe(second[0])
     })
 
-    it('should return empty array if no children', () => {
+    test('should return empty array if no children', () => {
       const result = treeStore.getChildren(7)
       expect(result).toEqual([])
     })
 
-    it('should return empty array for non-existent id', () => {
+    test('should return empty array for non-existent id', () => {
       const result = treeStore.getChildren(999)
       expect(result).toEqual([])
     })
   })
 
   describe('getAllChildren', () => {
-    it('should return all children recursively', () => {
+    test('should return all children recursively', () => {
       const result = treeStore.getAllChildren(1)
       expect(result).toHaveLength(7)
       expect(result.map((item) => item.id)).toEqual(expect.arrayContaining(['2', 3, 4, 5, 6, 7, 8]))
     })
 
-    it('should return all children for intermediate node', () => {
+    test('should return all children for intermediate node', () => {
       const result = treeStore.getAllChildren('2')
       expect(result).toHaveLength(5)
       expect(result.map((item) => item.id)).toEqual(expect.arrayContaining([4, 5, 6, 7, 8]))
     })
 
-    it('should return empty array if no children', () => {
+    test('should return empty array if no children', () => {
       const result = treeStore.getAllChildren(7)
       expect(result).toEqual([])
     })
 
-    it('should return empty array for non-existent id', () => {
+    test('should return empty array for non-existent id', () => {
       const result = treeStore.getAllChildren(999)
       expect(result).toEqual([])
     })
   })
 
   describe('getAllParents', () => {
-    it('should return all parents including self', () => {
+    test('should return all parents including self', () => {
       const result = treeStore.getAllParents(7)
       expect(result).toHaveLength(4)
       expect(result.map((item) => item.id)).toEqual([7, 4, '2', 1])
     })
 
-    it('should return only self for root element', () => {
+    test('should return only self for root element', () => {
       const result = treeStore.getAllParents(1)
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe(1)
     })
 
-    it('should return correct order for intermediate element', () => {
+    test('should return correct order for intermediate element', () => {
       const result = treeStore.getAllParents(4)
       expect(result).toHaveLength(3)
       expect(result.map((item) => item.id)).toEqual([4, '2', 1])
     })
 
-    it('should return empty array for non-existent id', () => {
+    test('should return empty array for non-existent id', () => {
       const result = treeStore.getAllParents(999)
       expect(result).toEqual([])
     })
   })
 
   describe('addItem', () => {
-    it('should add new item', () => {
+    test('should add new item', () => {
       const newItem = { id: 9, parent: 3, label: 'Айтем 9' }
       treeStore.addItem(newItem)
 
@@ -158,7 +152,7 @@ describe('TreeStore', () => {
       expect(treeStore.getAll()).toHaveLength(9)
     })
 
-    it('should add root item', () => {
+    test('should add root item', () => {
       const newItem = { id: 10, parent: null, label: 'Айтем 10' }
       treeStore.addItem(newItem)
 
@@ -166,7 +160,7 @@ describe('TreeStore', () => {
       expect(treeStore.getAll()).toHaveLength(9)
     })
 
-    it('should not affect original item reference', () => {
+    test('should not affect original item reference', () => {
       const newItem = { id: 9, parent: 3, label: 'Айтем 9' }
       treeStore.addItem(newItem)
 
@@ -176,7 +170,7 @@ describe('TreeStore', () => {
   })
 
   describe('removeItem', () => {
-    it('should remove item and all its children', () => {
+    test('should remove item and all its children', () => {
       treeStore.removeItem('2')
 
       expect(treeStore.getItem('2')).toBeUndefined()
@@ -191,7 +185,7 @@ describe('TreeStore', () => {
       expect(treeStore.getChildren(1)[0].id).toBe(3)
     })
 
-    it('should remove leaf item', () => {
+    test('should remove leaf item', () => {
       treeStore.removeItem(7)
 
       expect(treeStore.getItem(7)).toBeUndefined()
@@ -199,14 +193,14 @@ describe('TreeStore', () => {
       expect(treeStore.getChildren(4)).toHaveLength(1)
     })
 
-    it('should handle non-existent item', () => {
+    test('should handle non-existent item', () => {
       const originalLength = treeStore.getAll().length
 
       expect(() => treeStore.removeItem(999)).toThrow()
       expect(treeStore.getAll()).toHaveLength(originalLength)
     })
 
-    it('should remove child id from parent children set', () => {
+    test('should remove child id from parent children set', () => {
       treeStore.removeItem(3)
       // After removal, parent 1 should not have 3 in its children set
       const childrenSet = treeStore['childrenMap'].get(1)
@@ -215,7 +209,7 @@ describe('TreeStore', () => {
   })
 
   describe('updateItem', () => {
-    it('should update item properties', () => {
+    test('should update item properties', () => {
       const updatedItem = { id: 1, parent: null, label: 'Updated Айтем 1', newField: 'test' }
       treeStore.updateItem(updatedItem)
 
@@ -223,7 +217,7 @@ describe('TreeStore', () => {
       expect(result).toEqual(updatedItem)
     })
 
-    it('should update parent relationship', () => {
+    test('should update parent relationship', () => {
       const updatedItem = { id: 3, parent: '2', label: 'Айтем 3' }
       treeStore.updateItem(updatedItem)
 
@@ -232,7 +226,7 @@ describe('TreeStore', () => {
       expect(treeStore.getChildren('2').map((item) => item.id)).toContain(3)
     })
 
-    it('should handle moving to null parent', () => {
+    test('should handle moving to null parent', () => {
       const updatedItem = { id: 3, parent: null, label: 'Айтем 3' }
       treeStore.updateItem(updatedItem)
 
@@ -241,7 +235,7 @@ describe('TreeStore', () => {
       expect(treeStore.getAllParents(3)[0].id).toBe(3)
     })
 
-    it('should handle non-existent item', () => {
+    test('should handle non-existent item', () => {
       const originalLength = treeStore.getAll().length
       treeStore.updateItem({ id: 999, parent: null, label: 'Non-existent' })
 
@@ -249,7 +243,7 @@ describe('TreeStore', () => {
       expect(treeStore.getItem(999)).toBeUndefined()
     })
 
-    it('should not affect original item reference', () => {
+    test('should not affect original item reference', () => {
       const updatedItem = { id: 1, parent: null, label: 'Updated Айтем 1' }
       treeStore.updateItem(updatedItem)
       updatedItem.label = 'Modified after update'
@@ -258,7 +252,7 @@ describe('TreeStore', () => {
   })
 
   describe('performance considerations', () => {
-    it('should handle large datasets efficiently', () => {
+    test('should handle large datasets efficiently', () => {
       const largeItems: Item[] = []
       for (let i = 1; i <= 10000; i++) {
         largeItems.push({
@@ -284,7 +278,7 @@ describe('TreeStore', () => {
   })
 
   describe('TreeStore - Data Integrity and Edge Cases', () => {
-    it('should throw error on cycle in initial data', () => {
+    test('should throw error on cycle in initial data', () => {
       const items = [
         { id: 1, parent: 2, label: 'A' },
         { id: 2, parent: 3, label: 'B' },
@@ -293,7 +287,7 @@ describe('TreeStore', () => {
       expect(() => new TreeStore(items)).toThrow()
     })
 
-    it('should throw error when update creates a cycle', () => {
+    test('should throw error when update creates a cycle', () => {
       const items = [
         { id: 1, parent: null, label: 'A' },
         { id: 2, parent: 1, label: 'B' },
@@ -303,7 +297,7 @@ describe('TreeStore', () => {
       expect(() => store.updateItem({ id: 1, parent: 3, label: 'A' })).toThrow()
     })
 
-    it('should treat "2" and 2 as different ids', () => {
+    test('should treat "2" and 2 as different ids', () => {
       const items = [
         { id: 1, parent: null, label: 'A' },
         { id: '2', parent: 1, label: 'B' },
@@ -315,7 +309,7 @@ describe('TreeStore', () => {
       expect(store.getAll().length).toBe(3)
     })
 
-    it('should throw error when adding an already existing id', () => {
+    test('should throw error when adding an already existing id', () => {
       const items = [
         { id: 1, parent: null, label: 'A' },
         { id: 2, parent: 1, label: 'B' },
@@ -324,7 +318,7 @@ describe('TreeStore', () => {
       expect(() => store.addItem({ id: 1, parent: null, label: 'Duplicate' })).toThrow()
     })
 
-    it('should handle updating parent to null and update children/parents correctly', () => {
+    test('should handle updating parent to null and update children/parents correctly', () => {
       const items = [
         { id: 1, parent: null, label: 'A' },
         { id: 2, parent: 1, label: 'B' },
@@ -338,7 +332,7 @@ describe('TreeStore', () => {
       expect(store.getAllChildren(3).map((i) => i.id)).toEqual([])
     })
 
-    it('should return empty array for getAllChildren/getAllParents on non-existent id', () => {
+    test('should return empty array for getAllChildren/getAllParents on non-existent id', () => {
       const items = [
         { id: 1, parent: null, label: 'A' },
         { id: 2, parent: 1, label: 'B' },
@@ -346,6 +340,47 @@ describe('TreeStore', () => {
       const store = new TreeStore(items)
       expect(store.getAllChildren(999)).toEqual([])
       expect(store.getAllParents(999)).toEqual([])
+    })
+    test('should correctly handle parent with value 0', () => {
+      const itemsWithZeroParent = [
+        { id: 0, parent: null, label: 'Root Zero' },
+        { id: 1, parent: 0, label: 'Child One' },
+        { id: 2, parent: 0, label: 'Child Two' },
+        { id: 3, parent: 1, label: 'Grandchild Three' },
+      ]
+      const store = new TreeStore(itemsWithZeroParent)
+
+      // Root node with id 0 should have two children: 1 and 2
+      expect(store.getChildren(0).map((i) => i.id)).toEqual(expect.arrayContaining([1, 2]))
+
+      // Child with id 1 should have one child: 3
+      expect(store.getChildren(1).map((i) => i.id)).toEqual([3])
+
+      // getAllParents for 3 should return [3, 1, 0]
+      expect(store.getAllParents(3).map((i) => i.id)).toEqual([3, 1, 0])
+
+      // getAllParents for 0 should return only itself
+      expect(store.getAllParents(0).map((i) => i.id)).toEqual([0])
+    })
+
+    test('should correctly handle adding and updating items with parent 0', () => {
+      const itemsWithZeroParent = [
+        { id: 0, parent: null, label: 'Root Zero' },
+        { id: 1, parent: 0, label: 'Child One' },
+        { id: 2, parent: 0, label: 'Child Two' },
+        { id: 3, parent: 1, label: 'Grandchild Three' },
+      ]
+      const store = new TreeStore(itemsWithZeroParent)
+
+      // Add a new item with parent 0
+      const newItem = { id: 4, parent: 0, label: 'Child Four' }
+      store.addItem(newItem)
+      expect(store.getChildren(0).map((i) => i.id)).toEqual(expect.arrayContaining([1, 2, 4]))
+
+      // Update an item's parent to 0
+      store.updateItem({ id: 3, parent: 0, label: 'Grandchild Three' })
+      expect(store.getChildren(0).map((i) => i.id)).toEqual(expect.arrayContaining([1, 2, 3, 4]))
+      expect(store.getAllParents(3).map((i) => i.id)).toEqual([3, 0])
     })
   })
 })
