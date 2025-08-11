@@ -2,9 +2,11 @@
 
 ## Description
 
-Implementation of a tree data structure manager in TypeScript (TreeStore class) and a Vue 3 + AG Grid Enterprise table component for visualization and interaction.
+Implementation of a tree data structure manager in TypeScript (`TreeStore` class) and a Vue 3 + AG Grid Enterprise table component for visualization and interaction.
 
-The core is an array of objects with arbitrary `id` (number or string) and `parent` fields, allowing construction of trees of any depth. The table supports two modes: view and edit, with the ability to add, delete, rename items, and undo/redo changes.
+> **Requires Node.js v22.12.0 or newer**
+
+The core is an array of objects with arbitrary `id` (number or string) and `parentId ` fields, allowing construction of trees of any depth. The table supports two modes: view and edit, with the ability to add, delete, rename items, and undo/redo changes.
 
 ## Tech Stack
 
@@ -37,7 +39,7 @@ The core is an array of objects with arbitrary `id` (number or string) and `pare
 ## Structure & Features
 
 - **TreeStore (TypeScript):**
-  - Accepts an array of objects with id, parent, label, and arbitrary fields
+  - Accepts an array of objects with id, parentId, label, and arbitrary fields
   - Methods:
     - `getAll()` — returns the original array
     - `getItem(id)` — returns the object by id
