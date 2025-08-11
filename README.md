@@ -4,8 +4,6 @@
 
 Implementation of a tree data structure manager in TypeScript (`TreeStore` class) and a Vue 3 + AG Grid Enterprise table component for visualization and interaction.
 
-> **Requires Node.js v22.12.0 or newer**
-
 The core is an array of objects with arbitrary `id` (number or string) and `parentId ` fields, allowing construction of trees of any depth. The table supports two modes: view and edit, with the ability to add, delete, rename items, and undo/redo changes.
 
 ## Tech Stack
@@ -80,3 +78,12 @@ The core is an array of objects with arbitrary `id` (number or string) and `pare
   ```sh
   npm run lint
   ```
+
+---
+
+**Requirements**
+
+- Node.js **v22.12.0 or newer** is required.
+  - This project uses the new ECMAScript 2024 method [`Set.prototype.union`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union) for efficient set operations in the TreeStore implementation. Older Node.js versions do not support this method.
+
+---
