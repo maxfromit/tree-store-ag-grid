@@ -56,7 +56,7 @@ const applyBoldForGroup = (params: CellClassParams) => (isParent(params.data.id)
 const addItem = async (parentId: ItemId) => {
   const newItem = {
     id: nextNumericId.value,
-    label: 'Новый элемент',
+    label: 'New Item',
     parentId,
   }
   treeStore.value.addItem(newItem)
@@ -87,13 +87,13 @@ const gridOptions = ref({
   columnDefs: () => [
     {
       field: 'parentId',
-      headerName: 'Категория',
+      headerName: 'Category',
       rowGroup: true,
       hide: true,
     },
     {
       field: 'label',
-      headerName: 'Наименование',
+      headerName: 'Name',
       editable: mode.value === 'edit' ? true : false,
 
       cellClass: (params: CellClassParams) => {
@@ -132,7 +132,7 @@ const gridOptions = ref({
   getRowId: (params: GetRowIdParams<Item, any>) => l.toString(params.data.id),
   autoGroupColumnDef: () => {
     return {
-      headerName: 'Категория',
+      headerName: 'Category',
       cellClass: applyBoldForGroup,
       cellRendererParams: {
         suppressCount: true,
@@ -172,12 +172,12 @@ const nextNumericId = computed(() => {
   <div class="flex flex-col h-screen bg-gray-200 p-2 gap-2">
     <div class="flex flex-row items-center gap-2 text-blue-500 p-2">
       <div>
-        Режим:
+        Mode:
         <span
           @click="toggleMode"
           class="cursor-pointer hover:text-blue-600 focus:text-blue-700 transition-colors"
         >
-          {{ mode === 'view' ? 'просмотр' : 'редактирование' }}
+          {{ mode === 'view' ? 'view' : 'edit' }}
         </span>
       </div>
       <div v-if="mode === 'edit'" class="flex flex-row items-center gap-1">

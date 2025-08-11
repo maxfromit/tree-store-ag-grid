@@ -1,6 +1,6 @@
 export const getCategoryLabel = (parentId: boolean) => {
   if (parentId) {
-    return 'Группа'
+    return 'Group'
   }
-  return 'Элемент'
+  return 'Element'
 }

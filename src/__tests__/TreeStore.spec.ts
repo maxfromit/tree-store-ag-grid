@@ -43,12 +43,12 @@ describe('TreeStore', () => {
   describe('getItem', () => {
     test('should return item by id', () => {
       const result = treeStore.getItem(1)
-      expect(result).toEqual({ id: 1, parentId: null, label: 'Айтем 1' })
+      expect(result).toEqual({ id: 1, parentId: null, label: 'Item 1' })
     })
 
     test('should return item by string id', () => {
       const result = treeStore.getItem('2')
-      expect(result).toEqual({ id: '2', parentId: 1, label: 'Айтем 2' })
+      expect(result).toEqual({ id: '2', parentId: 1, label: 'Item 2' })
     })
 
     test('should return undefined for non-existent id', () => {
@@ -144,7 +144,7 @@ describe('TreeStore', () => {
 
   describe('addItem', () => {
     test('should add new item', () => {
-      const newItem = { id: 9, parentId: 3, label: 'Айтем 9' }
+      const newItem = { id: 9, parentId: 3, label: 'Item 9' }
       treeStore.addItem(newItem)
 
       expect(treeStore.getItem(9)).toEqual(newItem)
@@ -153,7 +153,7 @@ describe('TreeStore', () => {
     })
 
     test('should add root item', () => {
-      const newItem = { id: 10, parentId: null, label: 'Айтем 10' }
+      const newItem = { id: 10, parentId: null, label: 'Item 10' }
       treeStore.addItem(newItem)
 
       expect(treeStore.getItem(10)).toEqual(newItem)
@@ -161,11 +161,11 @@ describe('TreeStore', () => {
     })
 
     test('should not affect original item reference', () => {
-      const newItem = { id: 9, parentId: 3, label: 'Айтем 9' }
+      const newItem = { id: 9, parentId: 3, label: 'Item 9' }
       treeStore.addItem(newItem)
 
       newItem.label = 'Modified'
-      expect(treeStore.getItem(9)?.label).toBe('Айтем 9')
+      expect(treeStore.getItem(9)?.label).toBe('Item 9')
     })
   })
 
@@ -210,7 +210,7 @@ describe('TreeStore', () => {
 
   describe('updateItem', () => {
     test('should update item properties', () => {
-      const updatedItem = { id: 1, parentId: null, label: 'Updated Айтем 1', newField: 'test' }
+      const updatedItem = { id: 1, parentId: null, label: 'Updated Item 1', newField: 'test' }
       treeStore.updateItem(updatedItem)
 
       const result = treeStore.getItem(1)
@@ -218,7 +218,7 @@ describe('TreeStore', () => {
     })
 
     test('should update parent relationship', () => {
-      const updatedItem = { id: 3, parentId: '2', label: 'Айтем 3' }
+      const updatedItem = { id: 3, parentId: '2', label: 'Item 3' }
       treeStore.updateItem(updatedItem)
 
       expect(treeStore.getChildren(1)).toHaveLength(1)
@@ -227,7 +227,7 @@ describe('TreeStore', () => {
     })
 
     test('should handle moving to null parent', () => {
-      const updatedItem = { id: 3, parentId: null, label: 'Айтем 3' }
+      const updatedItem = { id: 3, parentId: null, label: 'Item 3' }
       treeStore.updateItem(updatedItem)
 
       expect(treeStore.getChildren(1)).toHaveLength(1)
@@ -244,10 +244,10 @@ describe('TreeStore', () => {
     })
 
     test('should not affect original item reference', () => {
-      const updatedItem = { id: 1, parentId: null, label: 'Updated Айтем 1' }
+      const updatedItem = { id: 1, parentId: null, label: 'Updated Item 1' }
       treeStore.updateItem(updatedItem)
       updatedItem.label = 'Modified after update'
-      expect(treeStore.getItem(1)?.label).toBe('Updated Айтем 1')
+      expect(treeStore.getItem(1)?.label).toBe('Updated Item 1')
     })
   })
 
