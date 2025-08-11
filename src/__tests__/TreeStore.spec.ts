@@ -43,12 +43,12 @@ describe('TreeStore', () => {
   describe('getItem', () => {
     test('should return item by id', () => {
       const result = treeStore.getItem(1)
-      expect(result).toEqual({ id: 1, parent: null, label: 'Айтем 1' })
+      expect(result).toEqual({ id: 1, parentId: null, label: 'Айтем 1' })
     })
 
     test('should return item by string id', () => {
       const result = treeStore.getItem('2')
-      expect(result).toEqual({ id: '2', parent: 1, label: 'Айтем 2' })
+      expect(result).toEqual({ id: '2', parentId: 1, label: 'Айтем 2' })
     })
 
     test('should return undefined for non-existent id', () => {
@@ -144,7 +144,7 @@ describe('TreeStore', () => {
 
   describe('addItem', () => {
     test('should add new item', () => {
-      const newItem = { id: 9, parent: 3, label: 'Айтем 9' }
+      const newItem = { id: 9, parentId: 3, label: 'Айтем 9' }
       treeStore.addItem(newItem)
 
       expect(treeStore.getItem(9)).toEqual(newItem)
@@ -153,7 +153,7 @@ describe('TreeStore', () => {
     })
 
     test('should add root item', () => {
-      const newItem = { id: 10, parent: null, label: 'Айтем 10' }
+      const newItem = { id: 10, parentId: null, label: 'Айтем 10' }
       treeStore.addItem(newItem)
 
       expect(treeStore.getItem(10)).toEqual(newItem)
@@ -161,7 +161,7 @@ describe('TreeStore', () => {
     })
 
     test('should not affect original item reference', () => {
-      const newItem = { id: 9, parent: 3, label: 'Айтем 9' }
+      const newItem = { id: 9, parentId: 3, label: 'Айтем 9' }
       treeStore.addItem(newItem)
 
       newItem.label = 'Modified'
@@ -210,7 +210,7 @@ describe('TreeStore', () => {
 
   describe('updateItem', () => {
     test('should update item properties', () => {
-      const updatedItem = { id: 1, parent: null, label: 'Updated Айтем 1', newField: 'test' }
+      const updatedItem = { id: 1, parentId: null, label: 'Updated Айтем 1', newField: 'test' }
       treeStore.updateItem(updatedItem)
 
       const result = treeStore.getItem(1)
@@ -218,7 +218,7 @@ describe('TreeStore', () => {
     })
 
     test('should update parent relationship', () => {
-      const updatedItem = { id: 3, parent: '2', label: 'Айтем 3' }
+      const updatedItem = { id: 3, parentId: '2', label: 'Айтем 3' }
       treeStore.updateItem(updatedItem)
 
       expect(treeStore.getChildren(1)).toHaveLength(1)
@@ -227,7 +227,7 @@ describe('TreeStore', () => {
     })
 
     test('should handle moving to null parent', () => {
-      const updatedItem = { id: 3, parent: null, label: 'Айтем 3' }
+      const updatedItem = { id: 3, parentId: null, label: 'Айтем 3' }
       treeStore.updateItem(updatedItem)
 
       expect(treeStore.getChildren(1)).toHaveLength(1)
@@ -237,14 +237,14 @@ describe('TreeStore', () => {
 
     test('should handle non-existent item', () => {
       const originalLength = treeStore.getAll().length
-      treeStore.updateItem({ id: 999, parent: null, label: 'Non-existent' })
+      treeStore.updateItem({ id: 999, parentId: null, label: 'Non-existent' })
 
       expect(treeStore.getAll()).toHaveLength(originalLength)
       expect(treeStore.getItem(999)).toBeUndefined()
     })
 
     test('should not affect original item reference', () => {
-      const updatedItem = { id: 1, parent: null, label: 'Updated Айтем 1' }
+      const updatedItem = { id: 1, parentId: null, label: 'Updated Айтем 1' }
       treeStore.updateItem(updatedItem)
       updatedItem.label = 'Modified after update'
       expect(treeStore.getItem(1)?.label).toBe('Updated Айтем 1')
@@ -257,7 +257,7 @@ describe('TreeStore', () => {
       for (let i = 1; i <= 10000; i++) {
         largeItems.push({
           id: i,
-          parent: i === 1 ? null : Math.floor(i / 2),
+          parentId: i === 1 ? null : Math.floor(i / 2),
           label: `Item ${i}`,
         })
       }
@@ -280,52 +280,52 @@ describe('TreeStore', () => {
   describe('TreeStore - Data Integrity and Edge Cases', () => {
     test('should throw error on cycle in initial data', () => {
       const items = [
-        { id: 1, parent: 2, label: 'A' },
-        { id: 2, parent: 3, label: 'B' },
-        { id: 3, parent: 1, label: 'C' }, // cycle: 1 -> 2 -> 3 -> 1
+        { id: 1, parentId: 2, label: 'A' },
+        { id: 2, parentId: 3, label: 'B' },
+        { id: 3, parentId: 1, label: 'C' }, // cycle: 1 -> 2 -> 3 -> 1
       ]
       expect(() => new TreeStore(items)).toThrow()
     })
 
     test('should throw error when update creates a cycle', () => {
       const items = [
-        { id: 1, parent: null, label: 'A' },
-        { id: 2, parent: 1, label: 'B' },
-        { id: 3, parent: 2, label: 'C' },
+        { id: 1, parentId: null, label: 'A' },
+        { id: 2, parentId: 1, label: 'B' },
+        { id: 3, parentId: 2, label: 'C' },
       ]
       const store = new TreeStore(items)
-      expect(() => store.updateItem({ id: 1, parent: 3, label: 'A' })).toThrow()
+      expect(() => store.updateItem({ id: 1, parentId: 3, label: 'A' })).toThrow()
     })
 
     test('should treat "2" and 2 as different ids', () => {
       const items = [
-        { id: 1, parent: null, label: 'A' },
-        { id: '2', parent: 1, label: 'B' },
+        { id: 1, parentId: null, label: 'A' },
+        { id: '2', parentId: 1, label: 'B' },
       ]
       const store = new TreeStore(items)
-      store.addItem({ id: 2, parent: 1, label: 'C' })
-      expect(store.getItem('2')).toEqual({ id: '2', parent: 1, label: 'B' })
-      expect(store.getItem(2)).toEqual({ id: 2, parent: 1, label: 'C' })
+      store.addItem({ id: 2, parentId: 1, label: 'C' })
+      expect(store.getItem('2')).toEqual({ id: '2', parentId: 1, label: 'B' })
+      expect(store.getItem(2)).toEqual({ id: 2, parentId: 1, label: 'C' })
       expect(store.getAll().length).toBe(3)
     })
 
     test('should throw error when adding an already existing id', () => {
       const items = [
-        { id: 1, parent: null, label: 'A' },
-        { id: 2, parent: 1, label: 'B' },
+        { id: 1, parentId: null, label: 'A' },
+        { id: 2, parentId: 1, label: 'B' },
       ]
       const store = new TreeStore(items)
-      expect(() => store.addItem({ id: 1, parent: null, label: 'Duplicate' })).toThrow()
+      expect(() => store.addItem({ id: 1, parentId: null, label: 'Duplicate' })).toThrow()
     })
 
     test('should handle updating parent to null and update children/parents correctly', () => {
       const items = [
-        { id: 1, parent: null, label: 'A' },
-        { id: 2, parent: 1, label: 'B' },
-        { id: 3, parent: 2, label: 'C' },
+        { id: 1, parentId: null, label: 'A' },
+        { id: 2, parentId: 1, label: 'B' },
+        { id: 3, parentId: 2, label: 'C' },
       ]
       const store = new TreeStore(items)
-      store.updateItem({ id: 3, parent: null, label: 'C' })
+      store.updateItem({ id: 3, parentId: null, label: 'C' })
       expect(store.getAllParents(3).map((i) => i.id)).toEqual([3])
       expect(store.getAllChildren(1).map((i) => i.id)).toEqual([2])
       expect(store.getAllChildren(2).map((i) => i.id)).toEqual([])
@@ -334,8 +334,8 @@ describe('TreeStore', () => {
 
     test('should return empty array for getAllChildren/getAllParents on non-existent id', () => {
       const items = [
-        { id: 1, parent: null, label: 'A' },
-        { id: 2, parent: 1, label: 'B' },
+        { id: 1, parentId: null, label: 'A' },
+        { id: 2, parentId: 1, label: 'B' },
       ]
       const store = new TreeStore(items)
       expect(store.getAllChildren(999)).toEqual([])
@@ -343,10 +343,10 @@ describe('TreeStore', () => {
     })
     test('should correctly handle parent with value 0', () => {
       const itemsWithZeroParent = [
-        { id: 0, parent: null, label: 'Root Zero' },
-        { id: 1, parent: 0, label: 'Child One' },
-        { id: 2, parent: 0, label: 'Child Two' },
-        { id: 3, parent: 1, label: 'Grandchild Three' },
+        { id: 0, parentId: null, label: 'Root Zero' },
+        { id: 1, parentId: 0, label: 'Child One' },
+        { id: 2, parentId: 0, label: 'Child Two' },
+        { id: 3, parentId: 1, label: 'Grandchild Three' },
       ]
       const store = new TreeStore(itemsWithZeroParent)
 
@@ -365,20 +365,20 @@ describe('TreeStore', () => {
 
     test('should correctly handle adding and updating items with parent 0', () => {
       const itemsWithZeroParent = [
-        { id: 0, parent: null, label: 'Root Zero' },
-        { id: 1, parent: 0, label: 'Child One' },
-        { id: 2, parent: 0, label: 'Child Two' },
-        { id: 3, parent: 1, label: 'Grandchild Three' },
+        { id: 0, parentId: null, label: 'Root Zero' },
+        { id: 1, parentId: 0, label: 'Child One' },
+        { id: 2, parentId: 0, label: 'Child Two' },
+        { id: 3, parentId: 1, label: 'Grandchild Three' },
       ]
       const store = new TreeStore(itemsWithZeroParent)
 
       // Add a new item with parent 0
-      const newItem = { id: 4, parent: 0, label: 'Child Four' }
+      const newItem = { id: 4, parentId: 0, label: 'Child Four' }
       store.addItem(newItem)
       expect(store.getChildren(0).map((i) => i.id)).toEqual(expect.arrayContaining([1, 2, 4]))
 
       // Update an item's parent to 0
-      store.updateItem({ id: 3, parent: 0, label: 'Grandchild Three' })
+      store.updateItem({ id: 3, parentId: 0, label: 'Grandchild Three' })
       expect(store.getChildren(0).map((i) => i.id)).toEqual(expect.arrayContaining([1, 2, 3, 4]))
       expect(store.getAllParents(3).map((i) => i.id)).toEqual([3, 0])
     })

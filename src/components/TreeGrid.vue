@@ -53,14 +53,14 @@ const toggleMode = () => {
 
 const applyBoldForGroup = (params: CellClassParams) => (isParent(params.data.id) ? 'font-bold' : '')
 
-const addItem = async (parent: ItemId) => {
+const addItem = async (parentId: ItemId) => {
   const newItem = {
     id: nextNumericId.value,
     label: 'Новый элемент',
-    parent,
+    parentId,
   }
   treeStore.value.addItem(newItem)
-  const parentNode = gridApi?.value?.getRowNode(l.toString(newItem.parent))
+  const parentNode = gridApi?.value?.getRowNode(l.toString(newItem.parentId))
 
   await new Promise((resolve) => setTimeout(resolve, 300))
 
@@ -86,7 +86,7 @@ export type IsParent = typeof isParent
 const gridOptions = ref({
   columnDefs: () => [
     {
-      field: 'parent',
+      field: 'parentId',
       headerName: 'Категория',
       rowGroup: true,
       hide: true,
@@ -128,7 +128,7 @@ const gridOptions = ref({
   },
 
   treeData: true,
-  treeDataParentIdField: 'parent',
+  treeDataParentIdField: 'parentId',
   getRowId: (params: GetRowIdParams<Item, any>) => l.toString(params.data.id),
   autoGroupColumnDef: () => {
     return {

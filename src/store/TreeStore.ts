@@ -1,7 +1,7 @@
 import { isNil } from 'lodash'
 export interface Item {
   id: number | string
-  parent: number | string | null
+  parentId: number | string | null
   label: string
 }
 
@@ -35,10 +35,10 @@ export class TreeStore {
   }
 
   private validateNoCycles(items: Item[]): void {
-    const idToParent = new Map<ItemId, ItemId | null>()
-    items.forEach((item) => idToParent.set(item.id, item.parent))
+    const idWithParentId = new Map<ItemId, ItemId | null>()
+    items.forEach((item) => idWithParentId.set(item.id, item.parentId))
 
-    const getParent = (id: ItemId) => idToParent.get(id) ?? null
+    const getParent = (id: ItemId) => idWithParentId.get(id) ?? null
 
     for (const item of items) {
       if (this.hasCycle(item.id, getParent)) {
@@ -54,11 +54,11 @@ export class TreeStore {
       }
       this.itemsMap.set(item.id, { ...item })
 
-      if (item.parent !== null) {
-        if (this.childrenMap.has(item.parent)) {
-          return this.childrenMap.get(item.parent)?.add(item.id)
+      if (item.parentId !== null) {
+        if (this.childrenMap.has(item.parentId)) {
+          return this.childrenMap.get(item.parentId)?.add(item.id)
         }
-        return this.childrenMap.set(item.parent, new Set([item.id]))
+        return this.childrenMap.set(item.parentId, new Set([item.id]))
       }
     })
   }
@@ -115,7 +115,7 @@ export class TreeStore {
       currentResult.push(currentItem)
     }
 
-    const parentId = currentItem?.parent
+    const parentId = currentItem?.parentId
     if (!isNil(parentId)) {
       this.collectChildAndItsParentRecursive(parentId, currentResult)
     }
@@ -183,7 +183,7 @@ export class TreeStore {
     const newItem = { ...item }
     this.itemsMap.set(newItem.id, newItem)
 
-    this.updateParent(newItem.id, newItem.parent)
+    this.updateParent(newItem.id, newItem.parentId)
   }
 
   removeItem(id: ItemId): void {
@@ -195,8 +195,8 @@ export class TreeStore {
 
     idsToRemove.forEach((childId) => {
       const original = this.itemsMap.get(childId)
-      if (original && !isNil(original.parent)) {
-        this.childrenMap.get(original.parent)?.delete(childId)
+      if (original && !isNil(original.parentId)) {
+        this.childrenMap.get(original.parentId)?.delete(childId)
       }
       this.itemsMap.delete(childId)
       this.childrenMap.delete(childId)
@@ -208,11 +208,11 @@ export class TreeStore {
     if (!existingItem) return
     this.itemsMap.set(item.id, { ...item })
 
-    const oldParent = existingItem.parent
-    const newParent = item.parent
+    const oldParentId = existingItem.parentId
+    const newParentId = item.parentId
 
-    if (oldParent !== newParent) {
-      this.updateParent(existingItem.id, newParent, oldParent)
+    if (oldParentId !== newParentId) {
+      this.updateParent(existingItem.id, newParentId, oldParentId)
     }
   }
 }

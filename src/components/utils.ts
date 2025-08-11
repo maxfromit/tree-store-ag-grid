@@ -1,5 +1,5 @@
-export const getCategoryLabel = (parent: boolean) => {
-  if (parent) {
+export const getCategoryLabel = (parentId: boolean) => {
+  if (parentId) {
     return 'Группа'
   }
   return 'Элемент'
