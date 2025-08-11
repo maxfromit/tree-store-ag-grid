@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 export interface Item {
   id: number | string
   parent: number | string | null
@@ -8,10 +9,10 @@ export type ItemId = Item['id']
 
 type ItemIdSet = Set<ItemId>
 type ChildrenMap = Map<ItemId, ItemIdSet>
-type itemMap = Map<ItemId, Item>
+type ItemMap = Map<ItemId, Item>
 
 export class TreeStore {
-  private itemsMap: itemMap
+  private itemsMap: ItemMap
   private childrenMap: ChildrenMap
 
   constructor(items: Item[]) {
@@ -48,6 +49,9 @@ export class TreeStore {
 
   private initializeItemAndChildrenMaps(items: Item[]) {
     items.forEach((item) => {
+      if (this.itemsMap.has(item.id)) {
+        throw new Error(`Item with id ${item.id} already exists`)
+      }
       this.itemsMap.set(item.id, { ...item })
 
       if (item.parent !== null) {
@@ -74,7 +78,7 @@ export class TreeStore {
       if (this.itemsMap.has(id)) {
         const item = this.itemsMap.get(id)
         if (item) {
-          findedItems.push(item)
+          findedItems.push({ ...item })
         }
       }
     })
@@ -112,7 +116,7 @@ export class TreeStore {
     }
 
     const parentId = currentItem?.parent
-    if (parentId) {
+    if (!isNil(parentId)) {
       this.collectChildAndItsParentRecursive(parentId, currentResult)
     }
 
@@ -124,17 +128,7 @@ export class TreeStore {
     parentId: ItemId | null,
     oldParentId?: ItemId | null,
   ): void {
-    if (!!parentId) {
-      this.collectChildrenRecursive(parentId)
-
-      if (!this.childrenMap.has(parentId)) {
-        this.childrenMap.set(parentId, new Set([childId]))
-      }
-
-      this.childrenMap.get(parentId)?.add(childId)
-    }
-
-    if (oldParentId !== undefined && parentId) {
+    if (oldParentId !== undefined && !isNil(parentId)) {
       const childrenOfChildId = this.collectChildrenRecursive(childId)
       if (childrenOfChildId.has(parentId)) {
         throw new Error(
@@ -143,18 +137,21 @@ export class TreeStore {
       }
     }
 
+    if (!isNil(parentId)) {
+      if (!this.childrenMap.has(parentId)) {
+        this.childrenMap.set(parentId, new Set([childId]))
+      }
+
+      this.childrenMap.get(parentId)?.add(childId)
+    }
+
     if (!!oldParentId) {
       this.childrenMap.get(oldParentId)?.delete(childId)
     }
-    return console.log(`Parent data of Item with id ${childId} updated, `)
-  }
-
-  getAllChildrenMap(): ChildrenMap {
-    return this.childrenMap
   }
 
   getAll(): Item[] {
-    return Array.from(this.itemsMap.values())
+    return Array.from(this.itemsMap.values(), (it) => ({ ...it }))
   }
 
   getItem(id: ItemId) {
@@ -188,15 +185,19 @@ export class TreeStore {
 
   removeItem(id: ItemId): void {
     const item = this.getItem(id)
-    if (!item) return console.log(`Item with id ${id} not found`)
+    if (!item) throw new Error(`Item with id ${id} not found`)
 
     const allChildrenIdToRemove = this.collectChildrenRecursive(id)
     const idsToRemove = [id, ...allChildrenIdToRemove]
-    idsToRemove.map((childId) => {
+
+    idsToRemove.forEach((childId) => {
+      const original = this.itemsMap.get(childId)
+      if (original && !isNil(original.parent)) {
+        this.childrenMap.get(original.parent)?.delete(childId)
+      }
       this.itemsMap.delete(childId)
       this.childrenMap.delete(childId)
     })
-    return console.log(`Item with id ${id} and its children removed`)
   }
 
   updateItem(item: Item): void {
