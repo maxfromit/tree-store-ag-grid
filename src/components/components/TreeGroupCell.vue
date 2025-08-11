@@ -3,13 +3,13 @@ import { computed } from 'vue'
 import { getCategoryLabel } from '../utils'
 import { PlusCircleIcon, XCircleIcon } from '@heroicons/vue/16/solid'
 import type { ICellRendererParams } from 'ag-grid-community'
-import type { ShowNewItemLabelDialog, DeleteItem, IsParent } from '../TreeGrid.vue'
+import type { AddItem, DeleteItem, IsParent } from '../TreeGrid.vue'
 
 const props = defineProps<{
   params: ICellRendererParams & {
     isParent: IsParent
     action: {
-      showDialog: ShowNewItemLabelDialog
+      addItem: AddItem
       delete: DeleteItem
     }
   }
@@ -19,8 +19,8 @@ const label = computed(() => {
   return getCategoryLabel(props.params.isParent(props.params.data?.id))
 })
 
-function showDialogInParent() {
-  props.params.action.showDialog(props.params.data?.id)
+function addItemInParent() {
+  props.params.action.addItem(props.params.data?.id)
 }
 
 function deleteItemInParent() {
@@ -29,11 +29,11 @@ function deleteItemInParent() {
 </script>
 
 <template>
-  <div class="flex flex-row items-center gap-2 justify-between">
+  <div class="flex flex-1 flex-row items-center gap-2 justify-between">
     <div>{{ label }}</div>
 
     <div class="flex flex-row items-center gap-1">
-      <button @click.stop="showDialogInParent" type="button">
+      <button @click.stop="addItemInParent" type="button">
         <PlusCircleIcon class="text-green-500 w-5 h-5 hover:text-green-600 focus:text-green-700" />
       </button>
 
