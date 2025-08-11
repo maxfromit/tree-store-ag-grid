@@ -23,7 +23,6 @@ import { getCategoryLabel } from './utils'
 
 import TreeGroupCell from './components/TreeGroupCell.vue'
 
-import NewItemLabelDialog from './components/NewItemLabelDialog.vue'
 import type { ItemId, Item } from '@/store/TreeStore'
 
 ModuleRegistry.registerModules([
@@ -54,12 +53,33 @@ const toggleMode = () => {
 
 const applyBoldForGroup = (params: CellClassParams) => (isParent(params.data.id) ? 'font-bold' : '')
 
-const { isDialogShown, getParentAndShowNewItemLabelDialog, dismissDialog, addItem } =
-  useAddWithDialog()
+const addItem = async (parent: ItemId) => {
+  const newItem = {
+    id: nextNumericId.value,
+    label: 'Новый элемент',
+    parent,
+  }
+  treeStore.value.addItem(newItem)
+  const parentNode = gridApi?.value?.getRowNode(l.toString(newItem.parent))
+
+  await new Promise((resolve) => setTimeout(resolve, 300))
+
+  if (parentNode) {
+    gridApi?.value?.setRowNodeExpanded(parentNode, true, true)
+  }
+
+  const childNode = gridApi?.value?.getRowNode(l.toString(newItem.id))
+
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  const childRowIndex = childNode?.rowIndex
+  if (childRowIndex) {
+    gridApi.value?.startEditingCell({ rowIndex: childRowIndex, colKey: 'label' })
+  }
+}
 
 const deleteItem = (id: ItemId) => treeStore.value.removeItem(id)
 
-export type ShowNewItemLabelDialog = typeof getParentAndShowNewItemLabelDialog
+export type AddItem = typeof addItem
 export type DeleteItem = typeof deleteItem
 export type IsParent = typeof isParent
 
@@ -83,12 +103,20 @@ const gridOptions = ref({
         )
       },
       onCellValueChanged: (event: NewValueParams<Item, string, any>) => {
+        console.log('onCellValueChanged')
         if (l.isString(event.newValue)) {
           treeStore.value.updateItem({
             ...event.data,
             label: event.newValue,
           })
         }
+      },
+      valueSetter: (params: NewValueParams<Item, string, any>) => {
+        console.log('valueSetter')
+        if (!l.isEmpty(params.newValue)) {
+          return true
+        }
+        return false
       },
     },
   ],
@@ -119,7 +147,7 @@ const gridOptions = ref({
         innerRendererParams: {
           isParent: isParent,
           action: {
-            showDialog: getParentAndShowNewItemLabelDialog,
+            addItem: addItem,
             delete: deleteItem,
           },
         },
@@ -130,53 +158,14 @@ const gridOptions = ref({
   theme: myTheme,
 })
 
-function useAddWithDialog() {
-  const isDialogShown = ref(false)
-
-  const dismissDialog = () => {
-    isDialogShown.value = false
-  }
-
-  const newItemParent = ref<ItemId | null>(null)
-
-  const getParentAndShowNewItemLabelDialog = (parent: ItemId) => {
-    newItemParent.value = parent
-    isDialogShown.value = true
-  }
-
-  const addItem = (label: string) => {
-    const newItem = {
-      id: nextNumericId.value,
-      label,
-      parent: newItemParent.value,
-    }
-    treeStore.value.addItem(newItem)
-    const node = gridApi?.value?.getRowNode(l.toString(newItem.parent))
-    dismissDialog()
-
-    setTimeout(() => {
-      if (node) {
-        gridApi?.value?.setRowNodeExpanded(node, true, true)
-      }
-    }, 300)
-  }
-
-  const nextNumericId = computed(() => {
-    const all = treeStore.value.getAll()
-    const numericIds = l.filter(
-      l.map(all, (item: Item) => (l.isNumber(item.id) ? item.id : null)),
-      l.isNumber,
-    )
-    return !l.isEmpty(numericIds) ? (l.max(numericIds) ?? 0) + 1 : 1
-  })
-
-  return {
-    isDialogShown,
-    dismissDialog,
-    getParentAndShowNewItemLabelDialog,
-    addItem,
-  }
-}
+const nextNumericId = computed(() => {
+  const all = treeStore.value.getAll()
+  const numericIds = l.filter(
+    l.map(all, (item: Item) => (l.isNumber(item.id) ? item.id : null)),
+    l.isNumber,
+  )
+  return !l.isEmpty(numericIds) ? (l.max(numericIds) ?? 0) + 1 : 1
+})
 </script>
 
 <template>
@@ -215,6 +204,11 @@ function useAddWithDialog() {
       class="ag-theme-quartz flex-1 min-h-0 flex flex-col"
     />
   </div>
-
-  <NewItemLabelDialog v-if="isDialogShown" @cancel="dismissDialog" @add-name="addItem" />
 </template>
+
+<style scoped>
+:deep(.ag-group-value) {
+  display: flex;
+  flex-grow: 1;
+}
+</style>
