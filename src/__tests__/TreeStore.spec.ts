@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { TreeStore } from '@/store/TreeStore'
 import { items } from '@/constants/items'
 
-
 interface Item {
   id: number | string
   parent: number | string | null
@@ -13,7 +12,6 @@ describe('TreeStore', () => {
   let treeStore: TreeStore
 
   beforeEach(() => {
-
     treeStore = new TreeStore(items)
   })
 
@@ -39,6 +37,12 @@ describe('TreeStore', () => {
       const result = treeStore.getAll()
       expect(result).not.toBe(items)
       expect(result[0]).not.toBe(items[0])
+    })
+
+    it('should return new copies on each call', () => {
+      const first = treeStore.getAll()
+      const second = treeStore.getAll()
+      expect(first[0]).not.toBe(second[0])
     })
   })
 
@@ -76,6 +80,12 @@ describe('TreeStore', () => {
       const result = treeStore.getChildren('2')
       expect(result).toHaveLength(3)
       expect(result.map((item) => item.id)).toEqual(expect.arrayContaining([4, 5, 6]))
+    })
+
+    it('should return new copies on each call', () => {
+      const first = treeStore.getChildren(1)
+      const second = treeStore.getChildren(1)
+      expect(first[0]).not.toBe(second[0])
     })
 
     it('should return empty array if no children', () => {
@@ -191,9 +201,16 @@ describe('TreeStore', () => {
 
     it('should handle non-existent item', () => {
       const originalLength = treeStore.getAll().length
-      treeStore.removeItem(999)
 
+      expect(() => treeStore.removeItem(999)).toThrow()
       expect(treeStore.getAll()).toHaveLength(originalLength)
+    })
+
+    it('should remove child id from parent children set', () => {
+      treeStore.removeItem(3)
+      // After removal, parent 1 should not have 3 in its children set
+      const childrenSet = treeStore['childrenMap'].get(1)
+      expect(childrenSet?.has(3)).toBe(false)
     })
   })
 
